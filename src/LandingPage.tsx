@@ -11,105 +11,6 @@ import {
 import * as THREE from "three";
 import { Suspense } from "react";
 
-/* ===== GLOWING CURSOR EFFECT ===== */
-const GlowingCursor = () => {
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setPosition({ x: e.clientX, y: e.clientY });
-    };
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, []);
-
-  return (
-    <div
-      style={{
-        position: "fixed",
-        left: position.x - 200,
-        top: position.y - 200,
-        width: "400px",
-        height: "400px",
-        background:
-          "radial-gradient(circle, rgba(136,170,255,0.15) 0%, transparent 70%)",
-        borderRadius: "50%",
-        pointerEvents: "none",
-        zIndex: 9999,
-        mixBlendMode: "screen",
-        transition: "all 0.05s ease",
-      }}
-    />
-  );
-};
-
-/* ===== COUNTDOWN TIMER ===== */
-const CountdownTimer = () => {
-  const [time, setTime] = useState({ hours: 0, minutes: 0, seconds: 0 });
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTime((prev) => {
-        let { hours, minutes, seconds } = prev;
-        seconds++;
-        if (seconds >= 60) {
-          seconds = 0;
-          minutes++;
-        }
-        if (minutes >= 60) {
-          minutes = 0;
-          hours++;
-        }
-        return { hours, minutes, seconds };
-      });
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  return (
-    <div
-      style={{
-        display: "flex",
-        gap: "30px",
-        justifyContent: "center",
-        marginBottom: "30px",
-        animation: "fadeInUp 0.8s ease 0.25s both",
-      }}
-    >
-      {[
-        { value: String(time.hours).padStart(2, "0"), label: "HOURS" },
-        { value: String(time.minutes).padStart(2, "0"), label: "MINUTES" },
-        { value: String(time.seconds).padStart(2, "0"), label: "SECONDS" },
-      ].map((item, i) => (
-        <div key={i} style={{ textAlign: "center" }}>
-          <div
-            style={{
-              fontSize: "48px",
-              fontWeight: 800,
-              color: "#88aaff",
-              textShadow: "0 0 30px #88aaff, 0 0 60px #88aaff",
-              lineHeight: 1,
-              fontFamily: "monospace",
-            }}
-          >
-            {item.value}
-          </div>
-          <div
-            style={{
-              color: "#888",
-              fontSize: "12px",
-              letterSpacing: "2px",
-              marginTop: "5px",
-            }}
-          >
-            {item.label}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-};
-
 /* ===== ANIMATED GRADIENT OVERLAY ===== */
 const AnimatedGradient = () => {
   return (
@@ -700,9 +601,6 @@ const LandingPage = ({
         position: "relative",
       }}
     >
-      {/* GLOWING CURSOR EFFECT */}
-      <GlowingCursor />
-
       {/* ANIMATED GRADIENT OVERLAY */}
       <AnimatedGradient />
 
@@ -822,7 +720,7 @@ const LandingPage = ({
                 display: "block",
               }}
             >
-              AI-Powered Global Disaster & Defense
+              Global Disaster & Defense
             </span>
             <span
               style={{
@@ -851,9 +749,6 @@ const LandingPage = ({
             Real-time monitoring of natural disasters, human rescue operations,
             and defense activities with advanced AI analysis
           </p>
-
-          {/* COUNTDOWN TIMER */}
-          <CountdownTimer />
 
           <Terminal />
 
@@ -904,25 +799,25 @@ const LandingPage = ({
               onClick={onSignupClick}
               style={{
                 padding: "12px 32px",
-                background: "linear-gradient(135deg, #3b82f6, #88aaff)",
-                border: "none",
+                background: "transparent",
+                border: "2px solid #88aaff",
                 borderRadius: "50px",
-                color: "white",
+                color: "#88aaff",
                 fontSize: "16px",
                 fontWeight: 600,
                 cursor: "pointer",
                 transition: "all 0.3s ease",
-                boxShadow: "0 0 20px rgba(59,130,246,0.3)",
+                backdropFilter: "blur(10px)",
               }}
               onMouseEnter={(e) => {
+                e.currentTarget.style.background = "#88aaff";
+                e.currentTarget.style.color = "#000";
                 e.currentTarget.style.transform = "scale(1.05)";
-                e.currentTarget.style.boxShadow =
-                  "0 0 30px rgba(59,130,246,0.5)";
               }}
               onMouseLeave={(e) => {
+                e.currentTarget.style.background = "transparent";
+                e.currentTarget.style.color = "#88aaff";
                 e.currentTarget.style.transform = "scale(1)";
-                e.currentTarget.style.boxShadow =
-                  "0 0 20px rgba(59,130,246,0.3)";
               }}
             >
               SIGN UP
