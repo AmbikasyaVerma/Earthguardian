@@ -33,9 +33,27 @@ interface Alert {
   source?: string;
 }
 
-/* ===== MULTIPLE API SOURCES ===== */
+// Map style options
+type MapStyle = "dark" | "satellite" | "light" | "streets" | "outdoor";
 
-// NASA EONET API
+const mapStyles: Record<MapStyle, string> = {
+  dark: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+  satellite:
+    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+  light: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+  streets: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+  outdoor: "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+};
+
+const mapStyleNames: Record<MapStyle, string> = {
+  dark: "Dark",
+  satellite: "Satellite",
+  light: "Light",
+  streets: "Streets",
+  outdoor: "Outdoor",
+};
+
+/* ===== NASA EONET API HELPER ===== */
 const fetchNASAAlerts = async (): Promise<Alert[]> => {
   try {
     const response = await fetch("https://eonet.gsfc.nasa.gov/api/v3/events");
@@ -123,7 +141,7 @@ const fetchNASAAlerts = async (): Promise<Alert[]> => {
   }
 };
 
-// USGS Earthquake API (Free, no API key needed)
+// USGS Earthquake API
 const fetchEarthquakeAlerts = async (): Promise<Alert[]> => {
   try {
     const response = await fetch(
@@ -171,9 +189,6 @@ const fetchEarthquakeAlerts = async (): Promise<Alert[]> => {
   }
 };
 
-// OpenWeatherMap (Optional - you can add your API key)
-// const fetchWeatherAlerts = async () => { ... }
-
 const formatTimeAgo = (date: Date): string => {
   const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
   if (seconds < 60) return `${seconds} sec ago`;
@@ -193,7 +208,6 @@ const fetchAllRealTimeAlerts = async (): Promise<Alert[]> => {
       fetchEarthquakeAlerts(),
     ]);
 
-    // Combine and sort by severity (critical first)
     const allAlerts = [...nasaAlerts, ...earthquakeAlerts];
     const severityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
     allAlerts.sort(
@@ -207,21 +221,18 @@ const fetchAllRealTimeAlerts = async (): Promise<Alert[]> => {
   }
 };
 
-/* ===== FIXED ALERT SOUND NOTIFICATION SYSTEM ===== */
+/* ===== ALERT SOUND NOTIFICATION SYSTEM ===== */
 const useAlertSound = () => {
-  // Create audio context only when needed
   const playSound = (
     frequency: number,
     duration: number,
     volume: number = 0.3
   ) => {
     try {
-      // Create audio context
       const AudioContextClass =
         window.AudioContext || (window as any).webkitAudioContext;
       const audioContext = new AudioContextClass();
 
-      // Resume if suspended
       if (audioContext.state === "suspended") {
         audioContext.resume();
       }
@@ -235,7 +246,6 @@ const useAlertSound = () => {
       oscillator.frequency.value = frequency;
       oscillator.type = "sine";
 
-      // Volume envelope
       gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
       gainNode.gain.exponentialRampToValueAtTime(
         0.0001,
@@ -245,7 +255,6 @@ const useAlertSound = () => {
       oscillator.start();
       oscillator.stop(audioContext.currentTime + duration);
 
-      // Clean up after sound finishes
       setTimeout(() => {
         audioContext.close();
       }, duration * 1000 + 100);
@@ -255,7 +264,6 @@ const useAlertSound = () => {
   };
 
   const playCriticalSound = () => {
-    // Two beeps for critical: 880Hz, 0.3s each, 0.2s gap
     playSound(880, 0.3, 0.4);
     setTimeout(() => {
       playSound(880, 0.3, 0.4);
@@ -263,7 +271,6 @@ const useAlertSound = () => {
   };
 
   const playHighSound = () => {
-    // One beep for high: 660Hz, 0.4s
     playSound(660, 0.4, 0.3);
   };
 
@@ -456,6 +463,113 @@ const ThemeToggleButton = ({
     >
       {isDarkMode ? "☀️" : "🌙"}
     </button>
+  );
+};
+
+/* ===== MAP STYLE TOGGLE BUTTON ===== */
+const MapStyleToggle = ({
+  currentStyle,
+  onStyleChange,
+}: {
+  currentStyle: MapStyle;
+  onStyleChange: (style: MapStyle) => void;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+
+  const stylesList: MapStyle[] = [
+    "dark",
+    "satellite",
+    "light",
+    "streets",
+    "outdoor",
+  ];
+
+  return (
+    <div
+      style={{ position: "fixed", bottom: "100px", left: "30px", zIndex: 1000 }}
+    >
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        style={{
+          width: "50px",
+          height: "50px",
+          borderRadius: "50%",
+          background: "linear-gradient(135deg, #3b82f6, #60a5fa)",
+          border: "none",
+          cursor: "pointer",
+          boxShadow: isHovered
+            ? "0 0 30px #3b82f6"
+            : "0 0 15px rgba(0,0,0,0.3)",
+          zIndex: 1000,
+          transition: "all 0.3s ease",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "24px",
+          transform: isHovered ? "scale(1.1)" : "scale(1)",
+        }}
+        title="Change Map Style"
+      >
+        🗺️
+      </button>
+
+      {isOpen && (
+        <div
+          style={{
+            position: "absolute",
+            bottom: "60px",
+            left: "0",
+            background: "rgba(20, 20, 30, 0.95)",
+            backdropFilter: "blur(10px)",
+            borderRadius: "20px",
+            padding: "10px",
+            border: "1px solid rgba(136, 170, 255, 0.2)",
+            display: "flex",
+            flexDirection: "column",
+            gap: "5px",
+            minWidth: "120px",
+          }}
+        >
+          {stylesList.map((style) => (
+            <button
+              key={style}
+              onClick={() => {
+                onStyleChange(style);
+                setIsOpen(false);
+              }}
+              style={{
+                padding: "8px 16px",
+                background: currentStyle === style ? "#3b82f6" : "transparent",
+                border: "none",
+                borderRadius: "12px",
+                color: currentStyle === style ? "white" : "#aaa",
+                fontSize: "12px",
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+                textAlign: "left",
+              }}
+              onMouseEnter={(e) => {
+                if (currentStyle !== style) {
+                  e.currentTarget.style.background = "rgba(59,130,246,0.2)";
+                  e.currentTarget.style.color = "white";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (currentStyle !== style) {
+                  e.currentTarget.style.background = "transparent";
+                  e.currentTarget.style.color = "#aaa";
+                }
+              }}
+            >
+              {mapStyleNames[style]}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 };
 
@@ -1858,6 +1972,7 @@ const Dashboard = ({ onLogout }: any) => {
   const [filter, setFilter] = useState<string>("all");
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isDarkMode, setIsDarkMode] = useState(true);
+  const [mapStyle, setMapStyle] = useState<MapStyle>("dark");
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const prevAlertsRef = useRef<Alert[]>([]);
@@ -2042,6 +2157,7 @@ const Dashboard = ({ onLogout }: any) => {
       ))}
       <EmergencyButton alerts={alerts} isDarkMode={isDarkMode} />
       <ThemeToggleButton isDarkMode={isDarkMode} toggleTheme={toggleTheme} />
+      <MapStyleToggle currentStyle={mapStyle} onStyleChange={setMapStyle} />
       <div
         style={{
           position: "fixed",
@@ -2280,8 +2396,8 @@ const Dashboard = ({ onLogout }: any) => {
               scrollWheelZoom={true}
             >
               <TileLayer
-                url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                attribution="&copy; OpenStreetMap"
+                url={mapStyles[mapStyle]}
+                attribution="&copy; OpenStreetMap contributors"
               />
               {alerts.map((alert) => (
                 <EnhancedMarker
