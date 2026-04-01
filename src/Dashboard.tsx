@@ -172,8 +172,8 @@ const fetchEarthquakeAlerts = async (): Promise<Alert[]> => {
           severity === "critical"
             ? "#ef4444"
             : severity === "high"
-            ? "#f59e0b"
-            : "#3b82f6",
+              ? "#f59e0b"
+              : "#3b82f6",
         icon: "🌍",
         coords: [coords[0], coords[1]],
         severity: severity,
@@ -344,9 +344,8 @@ const NotificationToast: React.FC<{
           background: isDarkMode ? "#1a1a24" : "#ffffff",
           borderRadius: "12px",
           boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1)",
-          border: `1px solid ${
-            notification.type === "critical" ? "#ef4444" : "#3b82f6"
-          }30`,
+          border: `1px solid ${notification.type === "critical" ? "#ef4444" : "#3b82f6"
+            }30`,
           overflow: "hidden",
         }}
       >
@@ -409,8 +408,8 @@ const NotificationToast: React.FC<{
               notification.type === "critical"
                 ? "#ef4444"
                 : notification.type === "high"
-                ? "#f59e0b"
-                : "#3b82f6",
+                  ? "#f59e0b"
+                  : "#3b82f6",
             width: "100%",
             animation: "shrinkWidth 5s linear forwards",
           }}
@@ -582,10 +581,10 @@ const EnhancedMarker: React.FC<{ alert: Alert; isDarkMode: boolean }> = ({
     alert.severity === "critical"
       ? "#ef4444"
       : alert.severity === "high"
-      ? "#f59e0b"
-      : alert.severity === "medium"
-      ? "#3b82f6"
-      : "#6b7280";
+        ? "#f59e0b"
+        : alert.severity === "medium"
+          ? "#3b82f6"
+          : "#6b7280";
 
   const icon = L.divIcon({
     className: "enhanced-marker",
@@ -708,9 +707,8 @@ const EnhancedStatCard: React.FC<{
         background: isDarkMode ? "#15151f" : "#ffffff",
         borderRadius: "16px",
         padding: "18px",
-        border: `1px solid ${
-          isHovered ? color + "60" : isDarkMode ? "#2a2a35" : "#e5e7eb"
-        }`,
+        border: `1px solid ${isHovered ? color + "60" : isDarkMode ? "#2a2a35" : "#e5e7eb"
+          }`,
         transition: "all 0.2s ease",
         transform: isHovered ? "translateY(-2px)" : "translateY(0)",
       }}
@@ -786,10 +784,10 @@ const EnhancedAlertCard: React.FC<{ alert: Alert; isDarkMode: boolean }> = ({
     alert.severity === "critical"
       ? "#ef4444"
       : alert.severity === "high"
-      ? "#f59e0b"
-      : alert.severity === "medium"
-      ? "#3b82f6"
-      : "#6b7280";
+        ? "#f59e0b"
+        : alert.severity === "medium"
+          ? "#3b82f6"
+          : "#6b7280";
 
   return (
     <div
@@ -800,9 +798,8 @@ const EnhancedAlertCard: React.FC<{ alert: Alert; isDarkMode: boolean }> = ({
         borderRadius: "12px",
         padding: "12px",
         marginBottom: "10px",
-        border: `1px solid ${
-          isHovered ? severityColor + "40" : isDarkMode ? "#2a2a35" : "#e5e7eb"
-        }`,
+        border: `1px solid ${isHovered ? severityColor + "40" : isDarkMode ? "#2a2a35" : "#e5e7eb"
+          }`,
         borderLeft: `3px solid ${severityColor}`,
         transition: "all 0.2s ease",
         transform: isHovered ? "translateX(4px)" : "translateX(0)",
@@ -932,9 +929,8 @@ const SeverityChart: React.FC<{ alerts: Alert[]; isDarkMode: boolean }> = ({
                 width: "56px",
                 height: "56px",
                 borderRadius: "50%",
-                background: `conic-gradient(${item.color} ${
-                  (item.value / total) * 360
-                }deg, ${isDarkMode ? "#2a2a3a" : "#e5e7eb"} 0deg)`,
+                background: `conic-gradient(${item.color} ${(item.value / total) * 360
+                  }deg, ${isDarkMode ? "#2a2a3a" : "#e5e7eb"} 0deg)`,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -1037,8 +1033,7 @@ const AlertFrequencyChart: React.FC<{
   const points = frequencyData
     .map(
       (value, i) =>
-        `${(i / (frequencyData.length - 1)) * 100},${
-          100 - (value / maxValue) * 100 * 0.9
+        `${(i / (frequencyData.length - 1)) * 100},${100 - (value / maxValue) * 100 * 0.9
         }`
     )
     .join(" ");
@@ -1421,8 +1416,8 @@ const AIPredictions: React.FC<{ alerts: Alert[]; isDarkMode: boolean }> = ({
             {pred.progress > 80
               ? "⚠️ High confidence"
               : pred.progress > 60
-              ? "📊 Medium confidence"
-              : "🔍 Monitoring"}
+                ? "📊 Medium confidence"
+                : "🔍 Monitoring"}
           </p>
         </div>
       ))}
@@ -1917,8 +1912,7 @@ const EmergencyButton = ({
     const highAlerts = alerts.filter((a) => a.severity === "high");
     setIsActivated(true);
     alert(
-      `🚨 EMERGENCY PROTOCOL ACTIVATED 🚨\n\n⚠️ CRITICAL ALERTS: ${
-        criticalAlerts.length
+      `🚨 EMERGENCY PROTOCOL ACTIVATED 🚨\n\n⚠️ CRITICAL ALERTS: ${criticalAlerts.length
       }\n⚠️ HIGH ALERTS: ${highAlerts.length}\n📍 Locations: ${alerts
         .map((a) => a.location)
         .join(
@@ -2060,15 +2054,12 @@ const Dashboard = ({ onLogout }: any) => {
       @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; visibility: hidden; } }
       @keyframes shrinkWidth { from { width: 100%; } to { width: 0%; } }
       .leaflet-popup-content-wrapper { background: transparent !important; box-shadow: none !important; padding: 0 !important; }
-      .leaflet-popup-tip { background: ${
-        isDarkMode ? "#1a1a24" : "#ffffff"
+      .leaflet-popup-tip { background: ${isDarkMode ? "#1a1a24" : "#ffffff"
       } !important; }
-      .leaflet-container { background: ${
-        isDarkMode ? "#0a0a0f" : "#f5f5f5"
+      .leaflet-container { background: ${isDarkMode ? "#0a0a0f" : "#f5f5f5"
       } !important; }
       ::-webkit-scrollbar { width: 4px; }
-      ::-webkit-scrollbar-track { background: ${
-        isDarkMode ? "#2a2a35" : "#e5e7eb"
+      ::-webkit-scrollbar-track { background: ${isDarkMode ? "#2a2a35" : "#e5e7eb"
       }; }
       ::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 4px; }
     `;
@@ -2320,9 +2311,9 @@ const Dashboard = ({ onLogout }: any) => {
                 cursor: "pointer",
               }}
               onMouseEnter={(e) =>
-                (e.currentTarget.style.background = isDarkMode
-                  ? "#2a1a1a"
-                  : "#fee2e2")
+              (e.currentTarget.style.background = isDarkMode
+                ? "#2a1a1a"
+                : "#fee2e2")
               }
               onMouseLeave={(e) =>
                 (e.currentTarget.style.background = "transparent")
@@ -2337,8 +2328,8 @@ const Dashboard = ({ onLogout }: any) => {
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(4, 1fr)",
-            gap: "16px",
-            marginBottom: "24px",
+            gap: "50px",
+            marginBottom: "50px",
           }}
         >
           <EnhancedStatCard
@@ -2375,7 +2366,7 @@ const Dashboard = ({ onLogout }: any) => {
           style={{
             display: "grid",
             gridTemplateColumns: "2fr 1fr",
-            gap: "16px",
+            gap: "50px",
             marginBottom: "24px",
           }}
         >
@@ -2422,23 +2413,13 @@ const Dashboard = ({ onLogout }: any) => {
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(3, 1fr)",
-            gap: "16px",
+            gap: "50px",
             marginBottom: "24px",
           }}
         >
           <AlertFrequencyChart alerts={alerts} isDarkMode={isDarkMode} />
           <RegionStats alerts={alerts} isDarkMode={isDarkMode} />
           <ResourcesPanel isDarkMode={isDarkMode} />
-        </div>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
-            gap: "16px",
-            marginBottom: "24px",
-          }}
-        >
           <WeatherPanel isDarkMode={isDarkMode} />
           <AIPredictions alerts={alerts} isDarkMode={isDarkMode} />
           <SystemHealth isDarkMode={isDarkMode} />
@@ -2490,9 +2471,9 @@ const Dashboard = ({ onLogout }: any) => {
                           (e.currentTarget.style.color = "#3b82f6")
                         }
                         onMouseLeave={(e) =>
-                          (e.currentTarget.style.color = isDarkMode
-                            ? "#666"
-                            : "#6b7280")
+                        (e.currentTarget.style.color = isDarkMode
+                          ? "#666"
+                          : "#6b7280")
                         }
                       >
                         {link}
