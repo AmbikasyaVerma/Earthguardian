@@ -13,6 +13,7 @@ import { Suspense } from "react";
 import Login from "./Login";
 import Signup from "./Signup";
 import Dashboard from "./Dashboard";
+import ApplyNow from "./ApplyNow";
 
 /* ===== ANIMATED GRADIENT OVERLAY ===== */
 const AnimatedGradient = () => {
@@ -814,9 +815,360 @@ const FeaturesPage = () => {
   );
 };
 
+/* ===== DOC DETAIL PAGE ===== */
+const DocDetailPage = ({
+  section,
+  onBack,
+}: {
+  section: any;
+  onBack: () => void;
+}) => {
+  const detailContent: Record<
+    string,
+    { heading: string; content: string; code?: string }[]
+  > = {
+    "🚀 Getting Started": [
+      {
+        heading: "Create your EarthGuardian AI account",
+        content:
+          "Head to earthguardian.ai/signup and enter your email address. Choose between a free tier (3 monitoring zones) or a Pro plan (unlimited zones). After verifying your email you will be redirected to the onboarding dashboard.",
+      },
+      {
+        heading: "Configure your monitoring preferences",
+        content:
+          "In the Settings panel, choose which disaster categories to monitor: earthquakes, floods, wildfires, hurricanes, or volcanic activity. Set severity thresholds — for example, alert only for M5.0+ earthquakes.",
+        code: `const prefs = {\n  disasters: ['earthquake', 'flood', 'wildfire'],\n  minSeverity: { earthquake: 5.0, flood: 'moderate' },\n  language: 'en',\n  timezone: 'UTC',\n};`,
+      },
+      {
+        heading: "Set up alert notifications",
+        content:
+          "Go to Alerts → Notification Channels. EarthGuardian supports email, SMS, Slack webhooks, and push notifications. Configure quiet hours and priority levels per channel.",
+      },
+      {
+        heading: "Connect to satellite data streams",
+        content:
+          "Navigate to Data → Satellite Streams and authorize the NASA and ESA satellite integrations. These provide near real-time imagery (15–30 min latency) for your selected monitoring zones.",
+        code: `const response = await fetch('/api/streams/authorize', {\n  method: 'POST',\n  headers: { Authorization: 'Bearer YOUR_API_KEY' },\n  body: JSON.stringify({ provider: 'NASA_EOS', zoneId: 'zone_123' }),\n});`,
+      },
+      {
+        heading: "Start monitoring global disaster zones",
+        content:
+          "Click 'Add Zone' on the Map view, draw a polygon or enter coordinates, and give it a name. Your zone will start receiving data within 60 seconds. The dashboard refreshes automatically as new events are detected.",
+      },
+    ],
+    "🔌 API Reference": [
+      {
+        heading: "RESTful API endpoints for data integration",
+        content:
+          "All API endpoints are available at https://api.earthguardian.ai/v1. Requests must include your API key in the Authorization header. The API returns JSON with standard HTTP status codes.",
+        code: `GET  /v1/events\nGET  /v1/events/:id\nGET  /v1/zones\nPOST /v1/zones\nDELETE /v1/zones/:id`,
+      },
+      {
+        heading: "WebSocket connections for real-time updates",
+        content:
+          "Connect to wss://stream.earthguardian.ai for live event feeds. After connecting, send a subscription message with your zone IDs. The server sends a heartbeat ping every 30 seconds.",
+        code: `const ws = new WebSocket('wss://stream.earthguardian.ai');\nws.onopen = () => {\n  ws.send(JSON.stringify({\n    type: 'subscribe',\n    token: 'YOUR_API_KEY',\n    zones: ['zone_abc', 'zone_xyz'],\n  }));\n};\nws.onmessage = (event) => {\n  const data = JSON.parse(event.data);\n  console.log('New event:', data);\n};`,
+      },
+      {
+        heading: "Authentication and API keys",
+        content:
+          "Generate API keys from Settings → API Keys. Keys are prefixed with eg_live_ or eg_test_. Pass the key as a Bearer token. Old keys remain valid for 24 hours after rotation.",
+        code: `Authorization: Bearer eg_live_xxxxxxxxxxxxxxxxxxxx`,
+      },
+      {
+        heading: "Rate limits and usage quotas",
+        content:
+          "Free tier: 100 requests/min, 10,000/day. Pro: 1,000 req/min, unlimited/day. Rate limit headers are returned with every response. Exceeding limits returns HTTP 429.",
+        code: `X-RateLimit-Limit: 1000\nX-RateLimit-Remaining: 842\nX-RateLimit-Reset: 1712871600`,
+      },
+      {
+        heading: "Error handling and response codes",
+        content:
+          "Errors follow a consistent shape with a code, message, and optional details field. 4xx errors are client-side; 5xx are server-side and are automatically retried.",
+        code: `{\n  "error": {\n    "code": "ZONE_NOT_FOUND",\n    "message": "The zone ID provided does not exist.",\n    "status": 404\n  }\n}`,
+      },
+    ],
+    "📡 Data Sources": [
+      {
+        heading: "NASA Earth Observing System",
+        content:
+          "EarthGuardian ingests data from the EOS constellation including Terra, Aqua, and Suomi NPP. Global coverage every 1–2 days with multispectral imaging at 250m–1km resolution — ideal for tracking wildfires and flood extents.",
+      },
+      {
+        heading: "ESA Sentinel Satellite Network",
+        content:
+          "The Copernicus Sentinel fleet provides 10m resolution SAR (Synthetic Aperture Radar) data, enabling monitoring through cloud cover — critical during typhoon and monsoon events. Sentinel-1 repeats every 6–12 days per location.",
+      },
+      {
+        heading: "NOAA Weather Data",
+        content:
+          "Real-time NOAA GOES-16/18 weather imagery is ingested every 10 minutes for the Americas. This feeds storm tracking and precipitation prediction models. NOAA GFS forecast data is updated every 6 hours.",
+        code: `GET /v1/weather?lat=25.7&lon=-80.2&source=NOAA_GOES`,
+      },
+      {
+        heading: "Global Seismic Networks",
+        content:
+          "We aggregate feeds from IRIS, USGS, and regional seismic networks — over 8,000 monitoring stations. Event detection latency is typically under 5 minutes for M4.0+ earthquakes globally.",
+      },
+      {
+        heading: "Weather Station Integration",
+        content:
+          "Ground-truth data from 200,000+ personal and public weather stations (via Weather Underground and MesoWest APIs) supplements satellite observations for hyper-local accuracy.",
+      },
+    ],
+    "🌍 Monitoring Zones": [
+      {
+        heading: "Define custom monitoring regions",
+        content:
+          "Zones can be defined as a polygon (draw on map), a bounding box (min/max lat-lon), or a radius around a point. Minimum zone area is 1 km²; maximum is 5,000,000 km² on Pro plans.",
+        code: `POST /v1/zones\n{\n  "name": "Pacific Ring of Fire",\n  "type": "polygon",\n  "coordinates": [[130,-10],[180,-10],[180,60],[130,60]],\n  "disasters": ["earthquake", "volcanic"]\n}`,
+      },
+      {
+        heading: "Set priority levels for zones",
+        content:
+          "Each zone can be assigned a priority: Critical, High, Medium, or Low. Priority affects alert delivery speed (Critical = immediate push + SMS; Low = daily digest email) and data refresh rate.",
+      },
+      {
+        heading: "Configure detection sensitivity",
+        content:
+          "Per zone, override global preferences. In a coastal zone you might lower the flood threshold to 'minor' while keeping earthquake threshold at M5.0+. Thresholds are evaluated in real-time.",
+      },
+      {
+        heading: "Zone-based alert thresholds",
+        content:
+          "Define minimum severity levels per disaster type, per zone. Alerts fire only when the threshold is crossed, reducing noise for low-priority regions while keeping critical zones fully monitored.",
+      },
+      {
+        heading: "Historical zone analysis",
+        content:
+          "The Zone Analytics page shows event frequency, severity distribution, and trend graphs over 7, 30, or 90 days. Export charts as PNG or download underlying data as CSV.",
+        code: `POST /v1/zones/:id/reports/schedule\n{\n  "frequency": "weekly",\n  "format": "pdf",\n  "recipients": ["ops@yourorg.com"]\n}`,
+      },
+    ],
+    "🤖 AI Models": [
+      {
+        heading: "Disaster pattern recognition models",
+        content:
+          "Our core detection model is a Vision Transformer (ViT-L/16) fine-tuned on 4.2M labeled satellite frames across 6 disaster categories. It achieves 94.3% precision and 91.7% recall on our held-out test set.",
+      },
+      {
+        heading: "Predictive analytics algorithms",
+        content:
+          "The prediction engine uses an ensemble of gradient-boosted trees (XGBoost) and a temporal convolutional network (TCN) to forecast disaster likelihood 24–72 hours ahead with probability scores and confidence intervals.",
+        code: `GET /v1/predict/flood?zoneId=zone_123&horizon=72h\n\n// Response\n{\n  "probability": 0.73,\n  "confidence": 0.85,\n  "peak_window": "2026-04-13T06:00Z"\n}`,
+      },
+      {
+        heading: "Camouflage detection networks",
+        content:
+          "Multispectral analysis using near-infrared and thermal bands detects camouflaged installations with 98% precision. The model runs on Sentinel-2 and Landsat-9 imagery updated every 5 days.",
+      },
+      {
+        heading: "Human detection AI",
+        content:
+          "Our rescue AI detects human heat signatures in disaster zones using thermal imagery from UAV and satellite feeds. Outputs GPS coordinates with 3m accuracy for rescue team dispatch.",
+      },
+      {
+        heading: "Custom model training",
+        content:
+          "Pro and Enterprise plans allow you to submit labeled imagery from your specific zones to fine-tune a variant of the base model. Contact sales@earthguardian.ai to discuss requirements and timelines.",
+        code: `POST /v1/infer\nContent-Type: multipart/form-data\n\n{ "file": <image.tiff>, "model": "wildfire-v3" }`,
+      },
+    ],
+    "🔒 Security & Compliance": [
+      {
+        heading: "GDPR compliance guidelines",
+        content:
+          "EarthGuardian is fully GDPR compliant. We act as a data processor under your instructions. A Data Processing Agreement (DPA) is available for all paid plans. EU users can exercise data rights via Settings → Privacy.",
+      },
+      {
+        heading: "Data encryption standards",
+        content:
+          "All data is encrypted in transit (TLS 1.3) and at rest (AES-256). Satellite imagery is stored in isolated S3 buckets with server-side encryption. API keys are hashed with bcrypt before storage.",
+      },
+      {
+        heading: "Access control policies",
+        content:
+          "Use Role-Based Access Control (RBAC) to assign teammates roles: Owner, Admin, Analyst, or Viewer. SSO via SAML 2.0 is available on Enterprise plans.",
+        code: `POST /v1/team/invite\n{\n  "email": "analyst@yourorg.com",\n  "role": "analyst"\n}`,
+      },
+      {
+        heading: "Audit logging",
+        content:
+          "All user actions are written to an immutable audit log retained for 12 months on Pro and 7 years on Enterprise. Export as JSON or CSV at any time.",
+        code: `GET /v1/audit?limit=50&after=2026-04-01T00:00Z`,
+      },
+      {
+        heading: "Incident response procedures",
+        content:
+          "In the event of a security incident, we notify affected customers within 72 hours as required by GDPR. The security team is reachable 24/7 at security@earthguardian.ai. Post-incident reports are published within 14 days for P0 incidents.",
+      },
+    ],
+  };
+
+  const sections = detailContent[section.title] || [];
+
+  return (
+    <div
+      style={{
+        width: "100%",
+        minHeight: "100vh",
+        background: "#0a0a0a",
+        paddingTop: "140px",
+        paddingBottom: "80px",
+      }}
+    >
+      <div
+        style={{
+          maxWidth: "900px",
+          margin: "0 auto",
+          paddingLeft: "20px",
+          paddingRight: "20px",
+        }}
+      >
+        {/* Back button */}
+        <button
+          onClick={onBack}
+          style={{
+            background: "transparent",
+            border: "1px solid rgba(136,170,255,0.3)",
+            color: "#88aaff",
+            padding: "10px 24px",
+            borderRadius: "40px",
+            cursor: "pointer",
+            fontSize: "14px",
+            marginBottom: "40px",
+            transition: "all 0.3s ease",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "rgba(136,170,255,0.1)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "transparent";
+          }}
+        >
+          ← Back to Docs
+        </button>
+
+        {/* Header */}
+        <div
+          style={{
+            marginBottom: "3rem",
+            paddingBottom: "2rem",
+            borderBottom: "1px solid rgba(255,255,255,0.08)",
+            animation: "fadeInUp 0.6s ease",
+          }}
+        >
+          <div style={{ fontSize: "48px", marginBottom: "1rem" }}>
+            {section.icon}
+          </div>
+          <h1
+            style={{
+              fontSize: "clamp(1.8rem, 4vw, 2.5rem)",
+              fontWeight: 800,
+              color: section.color,
+              marginBottom: "1rem",
+              letterSpacing: "-0.02em",
+            }}
+          >
+            {section.title}
+          </h1>
+          <span style={{ color: "#555", fontSize: "13px" }}>
+            ⏱ {section.timeEstimate} read
+          </span>
+        </div>
+
+        {/* Sections */}
+        {sections.map((item, i) => (
+          <div
+            key={i}
+            style={{
+              marginBottom: "2.5rem",
+              animation: `fadeInUp 0.6s ease ${i * 0.08}s both`,
+            }}
+          >
+            <h2
+              style={{
+                fontSize: "18px",
+                fontWeight: 700,
+                color: "#e2e8f0",
+                marginBottom: "0.75rem",
+              }}
+            >
+              <span style={{ color: section.color, marginRight: "8px" }}>
+                {String(i + 1).padStart(2, "0")}.
+              </span>
+              {item.heading}
+            </h2>
+            <p
+              style={{
+                color: "#999",
+                fontSize: "15px",
+                lineHeight: "1.75",
+                marginBottom: item.code ? "1rem" : 0,
+              }}
+            >
+              {item.content}
+            </p>
+            {item.code && (
+              <pre
+                style={{
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  borderRadius: "12px",
+                  padding: "1.25rem",
+                  overflowX: "auto",
+                  fontSize: "13px",
+                  fontFamily: "monospace",
+                  color: "#a5f3fc",
+                  lineHeight: "1.7",
+                  margin: 0,
+                }}
+              >
+                <code>{item.code}</code>
+              </pre>
+            )}
+          </div>
+        ))}
+
+        {/* Back button bottom */}
+        <div
+          style={{
+            marginTop: "4rem",
+            paddingTop: "2rem",
+            borderTop: "1px solid rgba(255,255,255,0.08)",
+          }}
+        >
+          <button
+            onClick={onBack}
+            style={{
+              background: "transparent",
+              border: "1px solid rgba(136,170,255,0.3)",
+              color: "#88aaff",
+              padding: "10px 24px",
+              borderRadius: "40px",
+              cursor: "pointer",
+              fontSize: "14px",
+              transition: "all 0.3s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "rgba(136,170,255,0.1)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "transparent";
+            }}
+          >
+            ← Back to Docs
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 /* ===== ENHANCED DOCS PAGE ===== */
 const DocsPage = () => {
   const [activeSection, setActiveSection] = useState<number | null>(null);
+  const [selectedDoc, setSelectedDoc] = useState<any | null>(null);
 
   const sections = [
     {
@@ -829,7 +1181,7 @@ const DocsPage = () => {
         "Connect to satellite data streams",
         "Start monitoring global disaster zones",
       ],
-      color: "#3b82f6",
+      color: "#f97316",
       timeEstimate: "10 mins",
     },
     {
@@ -842,7 +1194,7 @@ const DocsPage = () => {
         "Rate limits and usage quotas",
         "Error handling and response codes",
       ],
-      color: "#88aaff",
+      color: "#a78bfa",
       timeEstimate: "30 mins",
     },
     {
@@ -855,7 +1207,7 @@ const DocsPage = () => {
         "Global Seismic Networks",
         "Weather Station Integration",
       ],
-      color: "#a855f7",
+      color: "#34d399",
       timeEstimate: "20 mins",
     },
     {
@@ -868,7 +1220,7 @@ const DocsPage = () => {
         "Zone-based alert thresholds",
         "Historical zone analysis",
       ],
-      color: "#ec4899",
+      color: "#60a5fa",
       timeEstimate: "15 mins",
     },
     {
@@ -881,7 +1233,7 @@ const DocsPage = () => {
         "Human detection AI",
         "Custom model training",
       ],
-      color: "#f59e0b",
+      color: "#f472b6",
       timeEstimate: "45 mins",
     },
     {
@@ -894,10 +1246,20 @@ const DocsPage = () => {
         "Audit logging",
         "Incident response procedures",
       ],
-      color: "#10b981",
+      color: "#fbbf24",
       timeEstimate: "25 mins",
     },
   ];
+
+  // Show detail page if a doc is selected
+  if (selectedDoc) {
+    return (
+      <DocDetailPage
+        section={selectedDoc}
+        onBack={() => setSelectedDoc(null)}
+      />
+    );
+  }
 
   return (
     <div
@@ -997,6 +1359,7 @@ const DocsPage = () => {
                   activeSection === index
                     ? `0 20px 40px -15px ${section.color}`
                     : "0 10px 30px -10px rgba(0,0,0,0.5)",
+                cursor: "pointer",
               }}
             >
               <div
@@ -1053,10 +1416,21 @@ const DocsPage = () => {
                   ⏱️ {section.timeEstimate} read
                 </span>
                 <span
+                  onClick={() => setSelectedDoc(section)}
                   style={{
                     color: section.color,
                     fontSize: "14px",
                     cursor: "pointer",
+                    padding: "6px 16px",
+                    border: `1px solid ${section.color}60`,
+                    borderRadius: "20px",
+                    transition: "all 0.3s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = `${section.color}20`;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "transparent";
                   }}
                 >
                   Read more →
@@ -1094,7 +1468,7 @@ const DocsPage = () => {
 };
 
 /* ===== ENHANCED COMMUNITY PAGE ===== */
-const CommunityPage = () => {
+const CommunityPage = ({ setCurrentPage }: { setCurrentPage: (page: string) => void }) => {
   const [hoveredStat, setHoveredStat] = useState<number | null>(null);
   const [hoveredTestimonial, setHoveredTestimonial] = useState<number | null>(
     null
@@ -1102,47 +1476,54 @@ const CommunityPage = () => {
 
   const stats = [
     {
-      value: "50K+",
+      value: "10K+",
       label: "Active Users",
       color: "#3b82f6",
       icon: "👥",
-      growth: "+25% this month",
+      growth: "+25% MoM — fastest growing in disaster-tech",
+      tagline: "Join 50,000+ professionals",
+      why: "From UN coordinators to frontline responders, tomorrow's world will rely on EarthGuardian as an intelligent, real-time decision engine—empowering critical, life-saving actions with speed, precision, and trust.",
     },
     {
       value: "120+",
       label: "Countries",
       color: "#88aaff",
       icon: "🌍",
-      growth: "+12 new countries",
+      growth: "Global reach across 6 continents",
+      tagline: "Truly global coverage",
+      why: "No matter where a disaster happens, EarthGuardian will already be watching and understanding it—24/7 across the world. In the future, it'll help us act faster, save more lives, and reduce damage by giving real-time alerts and smart decisions before things get worse.",
     },
     {
-      value: "10K+",
+      value: "5K+",
       label: "Contributors",
       color: "#a855f7",
       icon: "🤝",
-      growth: "+1.2K this quarter",
+      growth: "Backed by defense & climate experts",
+      tagline: "Built by the best minds",
+      why: "EarthGuardian AI will help us detect disasters early, respond quickly, and protect more lives in the future.",
     },
     {
-      value: "500+",
+      value: "100+",
       label: "Partners",
       color: "#ec4899",
       icon: "🏢",
-      growth: "+50 partners",
+      growth: "UN agencies, NATO allies & Fortune 500",
+      tagline: "World-class institutions",
+      why: "Partnered with FEMA, NATO, NASA & leading climate institutes — the institutions protecting our world trust EarthGuardian.",
     },
   ];
 
   const testimonials = [
     {
-      name: "Dr. Sarah Johnson",
+      name: "Krishna",
       role: "Disaster Response Coordinator, UN",
-      content:
-        "EarthGuardian AI has revolutionized how we respond to natural disasters. The real-time data and predictive analytics save countless lives.",
+      content: "",
       avatar: "👩‍⚕️",
       rating: 5,
       date: "March 2026",
     },
     {
-      name: "Michael Chen",
+      name: "Divya",
       role: "CTO, Global Defense Systems",
       content:
         "The camouflage detection capabilities are unmatched. This technology is a game-changer for national security applications.",
@@ -1151,7 +1532,7 @@ const CommunityPage = () => {
       date: "February 2026",
     },
     {
-      name: "Elena Rodriguez",
+      name: "Kartikeya",
       role: "Lead Researcher, Climate Institute",
       content:
         "The accuracy of disaster pattern recognition has exceeded our expectations. A vital tool for climate research.",
@@ -1160,7 +1541,7 @@ const CommunityPage = () => {
       date: "March 2026",
     },
     {
-      name: "Dr. James Wilson",
+      name: "Geet",
       role: "Emergency Management Director, FEMA",
       content:
         "This platform has transformed our emergency response capabilities. The AI predictions are remarkably accurate.",
@@ -1266,11 +1647,13 @@ const CommunityPage = () => {
               margin: "0 auto",
             }}
           >
-            Connect with thousands of professionals using EarthGuardian AI to
-            make the world safer
+            Trusted by leading institutions, defense agencies, and climate
+            researchers across 120+ nations — join a rapidly growing ecosystem
+            protecting lives and critical infrastructure at scale.
           </p>
         </div>
 
+        {/* ===== 4 STAT BOXES ===== */}
         <div
           style={{
             display: "grid",
@@ -1287,19 +1670,25 @@ const CommunityPage = () => {
               style={{
                 background:
                   hoveredStat === i
-                    ? `linear-gradient(135deg, ${stat.color}20, rgba(20,20,30,0.9))`
+                    ? `linear-gradient(135deg, ${stat.color}25, rgba(20,20,30,0.95))`
                     : "rgba(20, 20, 30, 0.7)",
                 backdropFilter: "blur(15px)",
                 borderRadius: "24px",
-                padding: "32px",
+                padding: "32px 28px",
                 textAlign: "center",
-                border: `1px solid ${stat.color}40`,
+                border: `1px solid ${
+                  hoveredStat === i ? stat.color + "80" : stat.color + "40"
+                }`,
                 transition: "all 0.4s ease",
                 transform:
                   hoveredStat === i
-                    ? "translateY(-8px) scale(1.02)"
+                    ? "translateY(-10px) scale(1.03)"
                     : "translateY(0) scale(1)",
                 cursor: "pointer",
+                boxShadow:
+                  hoveredStat === i
+                    ? `0 20px 50px -15px ${stat.color}60`
+                    : "none",
               }}
             >
               <div style={{ fontSize: "48px", marginBottom: "15px" }}>
@@ -1325,16 +1714,52 @@ const CommunityPage = () => {
               >
                 {stat.label}
               </div>
-              {hoveredStat === i && (
+
+              {/* Shown on hover */}
+              {hoveredStat === i ? (
+                <div style={{ animation: "fadeInUp 0.3s ease" }}>
+                  <div
+                    style={{
+                      marginTop: "16px",
+                      color: stat.color,
+                      fontSize: "13px",
+                      fontWeight: 700,
+                      letterSpacing: "0.5px",
+                    }}
+                  >
+                    {stat.tagline}
+                  </div>
+                  <p
+                    style={{
+                      marginTop: "10px",
+                      color: "#bbb",
+                      fontSize: "13px",
+                      lineHeight: "1.6",
+                    }}
+                  >
+                    {stat.why}
+                  </p>
+                  <div
+                    style={{
+                      marginTop: "12px",
+                      color: stat.color,
+                      fontSize: "12px",
+                      opacity: 0.85,
+                    }}
+                  >
+                    📈 {stat.growth}
+                  </div>
+                </div>
+              ) : (
                 <div
                   style={{
-                    marginTop: "15px",
+                    marginTop: "14px",
                     color: stat.color,
-                    fontSize: "14px",
-                    animation: "fadeInUp 0.3s ease",
+                    fontSize: "12px",
+                    opacity: 0.7,
                   }}
                 >
-                  📈 {stat.growth}
+                  Hover to learn more ↑
                 </div>
               )}
             </div>
@@ -1534,7 +1959,8 @@ const CommunityPage = () => {
             Help us build a safer world. Join our team of developers,
             researchers, and disaster response experts.
           </p>
-          <GlowingButton onClick={() => {}}>Apply Now →</GlowingButton>
+          {/* STEP 5: Wired "Apply Now →" button to navigate to the apply page */}
+          <GlowingButton onClick={() => setCurrentPage("apply")}>Apply Now →</GlowingButton>
         </div>
       </div>
     </div>
@@ -1970,7 +2396,13 @@ const App = () => {
       {currentPage === "dashboard" && <Dashboard onLogout={handleLogout} />}
       {currentPage === "features" && <FeaturesPage />}
       {currentPage === "docs" && <DocsPage />}
-      {currentPage === "community" && <CommunityPage />}
+      {currentPage === "community" && (
+        <CommunityPage setCurrentPage={setCurrentPage} />
+      )}
+      {/* STEP 4: Render ApplyNow page, with back button returning to community */}
+      {currentPage === "apply" && (
+        <ApplyNow onBack={() => setCurrentPage("community")} />
+      )}
     </div>
   );
 };
